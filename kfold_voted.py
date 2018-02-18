@@ -1,6 +1,9 @@
 import csv
 import numpy
 from random import randrange
+import nltk # needed for Naive-Bayes
+import numpy as np
+from sklearn.model_selection import KFold
 
 def cross_validation_split(dataset, n_folds):
 	dataset_split = list()
@@ -64,7 +67,8 @@ def algorithm(train_set,test_set):
 			else:
 				curr_c = curr_c + 1
 	correct = 0
-	for i in xrange(num_inp):
+	num_inp1 = len(test_data)
+	for i in xrange(num_inp1):
 		epx_y = 0
 		for j in xrange(n-1):
 			for k in xrange(data.shape[1]-1):
@@ -87,7 +91,7 @@ filename = './breast_edit.csv'
 n_epoch = 50
 
 data = read_file(filename)
-data  = data[0:6,:]
+#data  = data[:]
 #print data
 x = data[:,0:9]
 #print x #print type(x[0][1]) #print(x[0]);
@@ -95,19 +99,32 @@ y = data[:,9]
 #print(y) #print type(y[0])
 num_inp = data.shape[0]
 
-n_folds = 2
+#n_folds = 2
 
-folds = cross_validation_split(data, n_folds)
-scores = list()
+kf = KFold(n_splits=10)
+sum = 0
+scores=[]
+for train, test in kf.split(data):
+    train_data = np.array(data)[train]
+    test_data = np.array(data)[test]
+    print test_data
+    predicted = algorithm(train_data,test_data)
+    scores.append(predicted)
+print scores
+print np.mean(scores)
+"""#folds = cross_validation_split(data, n_folds)
+#scores = list()
 for fold in folds:
 	train_set = list(folds)
-	train_set.remove(fold)
+	## remove ##
+	i = 0
+	while i < len(train_set):
+  		if (train_set[i]==fold):
+	    		del train_set[i]
+  		else:
+    			i += 1
+	## remove ##
+	#train_set.remove(fold)
 	train_set = sum(train_set, [])
-	test_set = list()
-	for row in fold:
-		row_copy = list(row)
-		test_set.append(row_copy)
+	test_set = list()"""
 
-	predicted = algorithm(train_set,test_set)
-	scores.append(predicted)
-print scores
