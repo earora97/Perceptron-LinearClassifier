@@ -1,89 +1,85 @@
 import csv
 import numpy
+import nltk
+import sklearn
 
-####Reading csv file####
-filename = './breast_edit.csv'
-raw_data = open(filename, 'rt')
-reader = csv.reader(raw_data, delimiter=',', quoting=csv.QUOTE_NONE)
-x = list(reader)
-try:
-	data = numpy.array(x).astype('float')
-except ValueError:
+def read_file(filename):
+	raw_data = open(filename, 'rt')
+	reader = csv.reader(raw_data, delimiter=',', quoting=csv.QUOTE_NONE)
+	x = list(reader)
 	data = numpy.array(x)
-#print(data.shape)
-#######    ########
+	print data
+	return data
+
+def voted_perceptron():
+	
+	w=[]
+	b=[]
+	c=[]
+	n=1
+	current_wvalue = []
+	current_bvalue = []
+	current_cvalue = 1
+	
+	#Initialising w and b
+	for i in range(dataset.shape[1]-1):
+		current_wvalue.append(0)
+	for i in range(dataset.shape[1]-1):
+		current_bvalue.append(0)
+	
+	for curr_ite in range(n_epoch):
+		for i in xrange(input_rows):
+			tsum=0
+		        for k in xrange(dataset.shape[1]-1):
+					tsum=tsum+current_wvalue[k]*int(x[i][k])+current_bvalue[k]
+			if(int(y[i])==2):
+		       		curr_y = -1
+			else:
+	        		curr_y = 1
+		   	if(curr_y*tsum <=0):
+				n = n+1
+				c.append(current_cvalue)
+				b.append(current_bvalue)
+				w.append(current_wvalue)
+				for k in xrange(dataset.shape[1]-1):	
+			            current_wvalue[k] = current_wvalue[k] + int(x[i][k])*curr_y
+	       			    current_bvalue[k] = current_bvalue[k] + curr_y
+		 		    current_cvalue = 1
+			else:
+				current_cvalue = current_cvalue + 1
+	return w,b,c,n
+
+def prediction(w,b,c,n):
+	right_predict = 0
+	for i in xrange(input_rows):
+		expected_yvalue = 0
+		for j in xrange(n-1):
+			for k in xrange(dataset.shape[1]-1):
+				expected_yvalue = expected_yvalue + w[j][k]*int(x[i][k]) + b[j][k]
+		if(expected_yvalue>0 and int(y[i])==4):
+			right_predict = right_predict + 1
+		if(expected_yvalue<0 and int(y[i])==2):
+			right_predict = right_predict + 1
+		
+
+	print ("Total correct predictions:", right_predict)
+	return right_predict
+
+print ("Give filename:")
+filename = raw_input()
+dataset = read_file(filename)
 
 
-##### Storing x and y #####
-
-x = data[:,0:9]
-#print type(x[0][1])
-#print(x[0]);
-y = data[:,9]
-#print(y)
-#print type(y[0])
-
-#######    ########
-
-#### Initialising ####
+#### Initialisation ####
 n_epoch = 50
-num_inp = data.shape[0]
-
-w=[]
-b=[]
-c=[]
-curr_w = []
-curr_b = []
-curr_c = 1
-n= 1
-for i in range(data.shape[1]-1):
-	curr_w.append(0)
-for i in range(data.shape[1]-1):
-	curr_b.append(0)
-
+print ("Number of Epochs:", n_epoch)
+input_rows = dataset.shape[0]
+print ("Total number of rows are: ",input_rows)
+x = dataset[:,0:9]
+y = dataset[:,9]
 #######    ########
 
-for curr_ite in range(n_epoch):
-	for i in xrange(num_inp):
-		tsum=0
-		#print "i",i
-	        for k in xrange(data.shape[1]-1):
-				tsum=tsum+curr_w[k]*int(x[i][k])+curr_b[k]
-		#print tsum
-		if(int(y[i])==2):
-	       		curr_y = -1
-		else:
-        		curr_y = 1
-		#print curr_y	    	
-	   	if(curr_y*tsum <=0):
-				
-			w.append(curr_w)
-			b.append(curr_b)
-			c.append(curr_c)
-			n = n+1
-			for k in xrange(data.shape[1]-1):	
-		            curr_w[k] = curr_w[k] + int(x[i][k])*curr_y
-       			    curr_b[k] = curr_b[k] + curr_y
-	 		    curr_c = 1
-		else:
-			curr_c = curr_c + 1
 
-#print "W",w
-#print "B",b
-#print "C",c
-
-##### Predicting values ####
-correct = 0
-for i in xrange(num_inp):
-	epx_y = 0
-	for j in xrange(n-1):
-		for k in xrange(data.shape[1]-1):
-			epx_y = epx_y + w[j][k]*int(x[i][k]) + b[j][k]
-	if(epx_y<0 and int(y[i])==2):
-		correct = correct + 1
-	if(epx_y>0 and int(y[i])==4):
-		correct = correct + 1
-
-print correct
-
-############
+final_w, final_b, final_c , final_n = voted_perceptron()
+correct_predictions = prediction(final_w,final_b,final_c,final_n)
+print 100*(float(correct_predictions)/float(input_rows))
