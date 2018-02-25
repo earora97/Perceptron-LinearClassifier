@@ -1,5 +1,5 @@
 import csv
-import numpy
+import numpy as np
 import nltk
 import sklearn
 
@@ -7,46 +7,50 @@ def read_file(filename):
 	raw_data = open(filename, 'rt')
 	reader = csv.reader(raw_data, delimiter=',', quoting=csv.QUOTE_NONE)
 	x = list(reader)
-	data = numpy.array(x)
-	print data
+	data = np.array(x)
+	#print data
 	return data
 
 def voted_perceptron():
-	
-	w=[]
 	b=[]
+	w=[]
 	c=[]
 	n=1
+	newsum=[]
 	current_wvalue = []
-	current_bvalue = []
+	current_bvalue = 0
 	current_cvalue = 1
 	
-	#Initialising w and b
+	#Initialising w
 	for i in range(dataset.shape[1]-1):
 		current_wvalue.append(0)
-	for i in range(dataset.shape[1]-1):
-		current_bvalue.append(0)
 	
+	#print input_rows
 	for curr_ite in range(n_epoch):
 		for i in xrange(input_rows):
 			tsum=0
-		        for k in xrange(dataset.shape[1]-1):
-					tsum=tsum+current_wvalue[k]*int(x[i][k])+current_bvalue[k]
 			if(int(y[i])==2):
 		       		curr_y = -1
 			else:
 	        		curr_y = 1
-		   	if(curr_y*tsum <=0):
-				n = n+1
+	        	tsum=0
+			var=0
+			for k in range(dataset.shape[1]-1):
+				var = var + current_wvalue[k]*int(x[i][k])
+		   	tsum = tsum + var + current_bvalue		        	
+				
+			if(curr_y*tsum <= 0):
 				c.append(current_cvalue)
 				b.append(current_bvalue)
 				w.append(current_wvalue)
+				n = n+1
 				for k in xrange(dataset.shape[1]-1):	
-			            current_wvalue[k] = current_wvalue[k] + int(x[i][k])*curr_y
-	       			    current_bvalue[k] = current_bvalue[k] + curr_y
-		 		    current_cvalue = 1
+					current_wvalue[k] = current_wvalue[k] + int(x[i][k])*curr_y
+	       			current_bvalue = current_bvalue + curr_y
+		 		current_cvalue = 1
 			else:
 				current_cvalue = current_cvalue + 1
+	#print w
 	return w,b,c,n
 
 def prediction(w,b,c,n):
@@ -54,8 +58,10 @@ def prediction(w,b,c,n):
 	for i in xrange(input_rows):
 		expected_yvalue = 0
 		for j in xrange(n-1):
+			d=0
 			for k in xrange(dataset.shape[1]-1):
-				expected_yvalue = expected_yvalue + w[j][k]*int(x[i][k]) + b[j][k]
+				d = d + w[j][k]*int(x[i][k])
+			expected_yvalue = expected_yvalue + c[j]*np.sign(d + b[j])
 		if(expected_yvalue>0 and int(y[i])==4):
 			right_predict = right_predict + 1
 		if(expected_yvalue<0 and int(y[i])==2):

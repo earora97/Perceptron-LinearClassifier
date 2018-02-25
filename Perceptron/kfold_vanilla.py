@@ -44,41 +44,41 @@ def algorithm(train_set,test_set):
 	for curr_ite in range(n_epoch):
 		for i in range(num_inp2):
 			tsum=0
+			var = 0
 			if(int(y[i])==2):
 		       		curr_y = -1
 			else:
 	        		curr_y = 1
-	        	for k in xrange(dataset.shape[1]-1):
-				tsum=tsum+current_wvalue[k]*int(x[i][k])
-		   	tsum = tsum + current_bvalue
+	        	for k in range(dataset.shape[1]-1):
+				var = var + current_wvalue[k]*int(x[i][k])
+		   	tsum = tsum + var + current_bvalue
 			if(curr_y*tsum <= 0):
-				n = n+1
 				c.append(current_cvalue)
 				b.append(current_bvalue)
 				w.append(current_wvalue)
-				for k in xrange(dataset.shape[1]-1):	
+				n = n+1
+				for k in range(dataset.shape[1]-1):	
 					current_wvalue[k] = current_wvalue[k] + int(x[i][k])*curr_y
 	       			current_bvalue = current_bvalue + curr_y
 		 		current_cvalue = 1
 			else:
 				current_cvalue = current_cvalue + 1
 
-		xx = test_set[:,0:9]
-		yy = test_set[:,9]
-		correct_predict = 0
-		num_inp1 = len(test_set)
+	xx = test_set[:,0:9]
+	yy = test_set[:,9]
+	correct_predict = 0
+	num_inp1 = len(test_set)
 
-		for i in xrange(num_inp1):
-			expected_yvalue = 0
-			for j in xrange(n-1):
-				d=0
-				for k in xrange(dataset.shape[1]-1):
-                    			d = d + w[j][k]*int(xx[i][k])
-               			expected_yvalue = expected_yvalue + c[j]*np.sign(d + b[j])
-			if(expected_yvalue<0 and int(yy[i])==2):
-				correct_predict = correct_predict + 1
-			if(expected_yvalue>0 and int(yy[i])==4):
-				correct_predict = correct_predict + 1
+	for i in range(num_inp1):
+		expected_yvalue = 0
+		d=0
+		for k in xrange(dataset.shape[1]-1):
+                    	d = d + w[len(w)-1][k]*int(xx[i][k])
+               	expected_yvalue = expected_yvalue + c[len(c)-1]*np.sign(d + b[len(b)-1])
+		if(expected_yvalue<0 and int(yy[i])==2):
+			correct_predict = correct_predict + 1
+		if(expected_yvalue>0 and int(yy[i])==4):
+			correct_predict = correct_predict + 1
 
 	return correct_predict
 
@@ -88,7 +88,7 @@ print ("Give filename:")
 filename = raw_input()
 dataset = read_file(filename)
 
-n_epoch = 10
+n_epoch = 1
 print ("Number of Epochs:", n_epoch)
 input_rows = dataset.shape[0]
 print ("Total number of rows are: ",input_rows)
