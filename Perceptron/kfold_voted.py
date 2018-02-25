@@ -5,126 +5,108 @@ import nltk # needed for Naive-Bayes
 import numpy as np
 from sklearn.model_selection import KFold
 
-def cross_validation_split(dataset, n_folds):
-	dataset_split = list()
-	dataset_copy = list(dataset)
-	fold_size = int(len(dataset) / n_folds)
-	for i in range(n_folds):
-		fold = list()
-		while len(fold) < fold_size:
-			index = randrange(len(dataset_copy))
-			fold.append(dataset_copy.pop(index))
-		dataset_split.append(fold)
-	return dataset_split
-
 def read_file(filename):
 	raw_data = open(filename, 'rt')
 	reader = csv.reader(raw_data, delimiter=',', quoting=csv.QUOTE_NONE)
 	x = list(reader)
-	try:
-		data = numpy.array(x).astype('float')
-	except ValueError:
-		data = numpy.array(x)
-	return data
-#print(data.shape)
+	dataset = numpy.array(x)
+	return dataset
+
+def cross_validation_split(dataset, n_folds):
+	data_copy = list(dataset)
+	fold_size = int(len(dataset) / n_folds)
+	data_split = list()
+	for i in range(n_folds):
+		fold = list()
+		while len(fold) < fold_size:
+			index = randrange(len(data_copy))
+			fold.append(data_copy.pop(index))
+		data_split.append(fold)
+	return data_split
+
 
 def algorithm(train_set,test_set):
 	w=[]
 	b=[]
 	c=[]
-	curr_w = []
-	curr_b = []
-	curr_c = 1
+	current_wvalue = []
+	current_bvalue = 0
+	current_cvalue = 1
 	n= 1
-
-	for i in range(data.shape[1]-1):
-		curr_w.append(0)
-	for i in range(data.shape[1]-1):
-		curr_b.append(0)
+	x = train_set[:,0:9]
+	y = train_set[:,9]
+	#print y
+	num_inp2 = len(train_set)
+	
+	for i in range(dataset.shape[1]-1):
+		current_wvalue.append(0)
 
 	for curr_ite in range(n_epoch):
-		for i in xrange(num_inp):
+		for i in range(num_inp2):
 			tsum=0
-			#print "i",i
-		        for k in xrange(data.shape[1]-1):
-					tsum=tsum+curr_w[k]*int(x[i][k])+curr_b[k]
-			#print tsum
+			var = 0
 			if(int(y[i])==2):
 		       		curr_y = -1
 			else:
 	        		curr_y = 1
-			#print curr_y	    	
-		   	if(curr_y*tsum <=0):
-					
-				w.append(curr_w)
-				b.append(curr_b)
-				c.append(curr_c)
+	        	for k in range(dataset.shape[1]-1):
+				var = var + current_wvalue[k]*int(x[i][k])
+		   	tsum = tsum + var + current_bvalue
+			if(curr_y*tsum <= 0):
+				c.append(current_cvalue)
+				b.append(current_bvalue)
+				w.append(current_wvalue)
 				n = n+1
-				for k in xrange(data.shape[1]-1):	
-			            curr_w[k] = curr_w[k] + int(x[i][k])*curr_y
-	       			    curr_b[k] = curr_b[k] + curr_y
-		 		    curr_c = 1
+				for k in range(dataset.shape[1]-1):	
+					current_wvalue[k] = current_wvalue[k] + int(x[i][k])*curr_y
+	       			current_bvalue = current_bvalue + curr_y
+		 		current_cvalue = 1
 			else:
-				curr_c = curr_c + 1
-	correct = 0
-	num_inp1 = len(test_data)
-	for i in xrange(num_inp1):
-		epx_y = 0
-		for j in xrange(n-1):
-			for k in xrange(data.shape[1]-1):
-				epx_y = epx_y + w[j][k]*int(x[i][k]) + b[j][k]
-		if(epx_y<0 and int(y[i])==2):
-			correct = correct + 1
-		if(epx_y>0 and int(y[i])==4):
-			correct = correct + 1
+				current_cvalue = current_cvalue + 1
 
-	return correct
+	xx = test_set[:,0:9]
+	yy = test_set[:,9]
+	correct_predict = 0
+	num_inp1 = len(test_set)
 
-#print "W",w
-#print "B",b
-#print "C",c
+	for i in range(num_inp1):
+		expected_yvalue = 0
+		for j in range(len(w)):
+			d=0
+			for k in xrange(dataset.shape[1]-1):
+                    		d = d + w[j][k]*int(xx[i][k])
+               		expected_yvalue = expected_yvalue + c[j]*np.sign(d + b[j])
+		if(expected_yvalue<0 and int(yy[i])==2):
+			correct_predict = correct_predict + 1
+		if(expected_yvalue>0 and int(yy[i])==4):
+			correct_predict = correct_predict + 1
 
-#def prediction():
-	
+	return correct_predict
 
-filename = './breast_edit.csv'
+
+#### Initialisation ####
+print ("Give filename:")
+filename = raw_input()
+dataset = read_file(filename)
+
 n_epoch = 50
-
-data = read_file(filename)
-#data  = data[:]
-#print data
-x = data[:,0:9]
-#print x #print type(x[0][1]) #print(x[0]);
-y = data[:,9]
-#print(y) #print type(y[0])
-num_inp = data.shape[0]
-
-#n_folds = 2
+print ("Number of Epochs:", n_epoch)
+input_rows = dataset.shape[0]
+print ("Total number of rows are: ",input_rows)
 
 kf = KFold(n_splits=10)
-sum = 0
 scores=[]
-for train, test in kf.split(data):
-    train_data = np.array(data)[train]
-    test_data = np.array(data)[test]
-    print test_data
+num_splits=10
+#######    ########
+#folds = cross_validation_split(dataset,num_splits)
+#print folds
+
+for train, test in kf.split(dataset):
+    train_data = np.array(dataset)[train]
+    test_data = np.array(dataset)[test]
     predicted = algorithm(train_data,test_data)
     scores.append(predicted)
-print scores
-print np.mean(scores)
-"""#folds = cross_validation_split(data, n_folds)
-#scores = list()
-for fold in folds:
-	train_set = list(folds)
-	## remove ##
-	i = 0
-	while i < len(train_set):
-  		if (train_set[i]==fold):
-	    		del train_set[i]
-  		else:
-    			i += 1
-	## remove ##
-	#train_set.remove(fold)
-	train_set = sum(train_set, [])
-	test_set = list()"""
 
+num_row_per_case = float(input_rows)/float(num_splits)
+print scores
+print (float(np.mean(scores))/float(num_row_per_case))*100
